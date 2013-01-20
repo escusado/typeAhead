@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Test Typeahead</title>
+  
+  <script src="http://code.jquery.com/jquery.min.js"></script>
+  
+  <script>
+    var typeAhead = {
+      start: function (element) {
+        //Element collection
+        console.log('typeAhead.start() >>>');
+        this.el = element;
+        this.query = this.el.find('.query');
+        this.results = this.el.find('.results');
+        this.resultTmpl = $('.result-template').html();
+
+        //Config
+        this.searchURL = 'http://localhost:3000/name/'
+
+        this.bindEvents();
+      },
+
+      bindEvents: function(){
+        var typeAhead = this;
+
+        this.query.keyup(function(ev){
+          console.log('hey up >>');
+          typeAhead.sendRequest( typeAhead.query.val(), function(response){
+            typeAhead.processResults(response);
+          } );
+        });
+
+      },
+
+      sendRequest: function(query, callback){
+        $.ajax({
+          url: this.searchURL+query,
+          dataType: 'json',
+          success: function(data){
+            if(callback && typeof callback !== 'undefined'){
+              callback(data);
+            }
+          }
+        });
+
+      },
+
+      processResults: function(results){
+        var tmpl = this.resultTmpl;
+
+        var buffer = '';
+        
+        results.forEach(function(el , i){
+            buffer += tmpl.replace('{{index}}', i)
+                          .replace('{{name}}', el);
+        });
+
+        this.results.html('').append(buffer);
+
+      }
+
+    };
+
+    $(document).ready(function(){
+      console.log('init typeAhead!');
+      typeAhead.start( $('.search') );
+    });
+
+  </script>
+  
+  <script class="result-template" type="text-template">
+    <!-- result-template -->
+    <li class="name">
+      <span class="index">{{index}}</span>
+      <span class="name">{{name}}</span>
+    </li>
+    <!-- result-template -->  
+  </script>
+  
+</head>
+<body>
+  
+  
+  <div class="search">
+  
+    <input class="query" type="text" />
+    
+    <ul class="results">
+      
+    </ul>
+  
+  </div>
+</body>
+</html>
